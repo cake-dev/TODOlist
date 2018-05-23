@@ -11,13 +11,16 @@ import UIKit
 class TodoListViewController: UITableViewController {
     
     var listItems = [ListItem]()
+    
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
         // Do any additional setup after loading the view, typically from a nib.
-        let newItem = ListItem()
-        newItem.title = "Item 1"
-        listItems.append(newItem)
+
+        loadItems()
     }
     
     // MARK: TableView datasource methods
@@ -39,9 +42,11 @@ class TodoListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         listItems[indexPath.row].checked = !listItems[indexPath.row].checked
+        saveItems()
         tableView.deselectRow(at: indexPath, animated: true)
         tableView.reloadRows(at: [indexPath], with: .automatic)
     }
+    
     
     // MARK: Add new items
     
@@ -54,6 +59,7 @@ class TodoListViewController: UITableViewController {
                 let newItem = ListItem()
                 newItem.title = textField.text!
                 self.listItems.append(newItem)
+                self.saveItems()
                 self.tableView.reloadData()
             }
         }
@@ -63,6 +69,27 @@ class TodoListViewController: UITableViewController {
         }
         alert.addAction(action)
         present(alert, animated: true, completion: nil)
+    }
+    
+    private func saveItems() {
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(listItems)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error encoding list items")
+        }
+    }
+    
+    private func loadItems() {
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            let decoder = PropertyListDecoder()
+            do {
+                listItems = try decoder.decode([ListItem].self, from: data)
+            } catch {
+                print("Error decoding listItem array, \(error)")
+            }
+        }
     }
     
     

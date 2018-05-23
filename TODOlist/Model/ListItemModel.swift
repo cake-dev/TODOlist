@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ListItem {
+class ListItem: Codable {
     var checked: Bool = false
     var title: String = ""
 }
